@@ -2,61 +2,58 @@
 const mongoose = require("mongoose");
 const IssueModel = require("../models").Issue;
 const ProjectModel = require("../models").Project;
-
+const ObjectId = mongoose.Types.ObjectId;
 
 module.exports = function (app) {
-  app.route("/api/issues/:project")
+  app
+    .route("/api/issues/:project")
     .get(function (req, res) {
-      let project = req.params.project;
+      let projectName = req.params.project;
+      //?open=true&assigned_to=Joe
+      const {
+        _id,
+        open,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text,
+      } = req.query;
 
-      const { 
-        _id , 
-        open , 
-        issue_title , 
-        issue_text , 
-        created_by , 
-        assgined_to , 
-        status_text , 
-      } = req.body ; 
-      const queryFilters = {};
-
- 
-
-    
       ProjectModel.aggregate([
-        {$match : {name : project }} , 
-        {$unwind : "$Issues"} , 
-        _id != undefined 
-          ? { $match : {"Issues._id" : ObjectId(_id) }}
-          : { $match : {}} ,
-        open != undefined  
-          ? { $match : {"Issues.open" : ObjectId(open)}} 
-          : { $match : {}} , 
-        issue_title  != undefined 
-          ? { $match : {"Issues.issue_title" :  ObjectId(issue_title)}}
-          : { $match : {}} , 
-        issue_text != undefined  
-          ? { $match : {"Issues.issue_text"  : ObjectId(issue_title )}}
-          : { $match : {}} , 
-        created_by != undefined 
-          ? { $match : {"Issues.created_by" : ObjectId(created_by)}}
-          : { $match : {}} , 
-        assgined_to != undefined 
-          ? { $match : {"Issues.assigned_to" : ObjectId(assgined_to)}}
-          : { $match : {}} , 
-        status_text != undefined 
-          ? { $match : {"Issues.status_text " : ObjectId(status_text)}} 
-          : { $match : {}} , 
-        ]).exec((err, data) => {
-          if (!data) {
-            res.json([]);
-            console.log("no info to be found")
-          } else {
-            let mappedData = data.map((item) => item.Issues);
-            res.json(mappedData);
-          }
-        });  
-  
+        { $match: { name: projectName } },
+        { $unwind: "$Issues" },
+        _id != undefined
+          ? { $match: { "Issues._id": _id } }
+          : { $match: {} },
+        open != undefined
+          ? { $match: { "Issues.open": open } }
+          : { $match: {} },
+        issue_title != undefined
+          ? { $match: { "Issues.issue_title": issue_title } }
+          : { $match: {} },
+        issue_text != undefined
+          ? { $match: { "Issues.issue_text": issue_text } }
+          : { $match: {} },
+        created_by != undefined
+          ? { $match: { "Issues.created_by": created_by } }
+          : { $match: {} },
+        assigned_to != undefined
+          ? { $match: { "issue.assigned_to": assigned_to } }
+          : { $match: {} },
+        status_text != undefined
+          ? { $match: { "Issues.status_text": status_text } }
+          : { $match: {} },
+      ]).exec((err, data) => {
+        if (!data) {
+          res.json([]);
+          console.log("data not found ")
+        } else {
+          let mappedData = data.map((item) => item.Issues);
+          res.json(mappedData);
+          console.log(mappedData)
+        }
+      });
     })
 
     .post(function (req, res) {
@@ -94,7 +91,7 @@ module.exports = function (app) {
             }
           });
         } else {
-          projectdata.Issues.push(newIssue);
+          projectdata.issues.push(newIssue);
           projectdata.save((err, data) => {
             if (err || !data) {
               res.send("There was an error saving in post");
