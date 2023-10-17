@@ -44,16 +44,14 @@ module.exports = function (app) {
         status_text != undefined 
           ? { $match : {"issues.status_text " : ObjectId(status_text)}} 
           : { $match : {}} , 
-        ]).exec((res , data) => {
+        ]).exec((err, data) => {
           if (!data) {
-            console.log ("no data has been set")
+            res.json([]);
+            console.log("no info to be found")
           } else {
             let mappedData = data.map((item) => item.Issues);
-            if (res.json(mappedData)) { 
-              console.log("respond recieved")
-            }else{ 
-              console.log("kill ur self")
-            }
+            res.json(mappedData);
+            console.log(mappedData)
           }
         });
      })
