@@ -20,41 +20,43 @@ module.exports = function (app) {
         assgined_to , 
         status_text , 
       } = req.body ; 
-
       Projectmodel.aggregate([
-        { $match: { name: projectName } },
-        { $unwind: "$issues" },
-        _id != undefined
-          ? { $match: { "issues._id": ObjectId(_id) } }
-          : { $match: {} },
-        open != undefined
-          ? { $match: { "issues.open": open } }
-          : { $match: {} },
-        issue_title != undefined
-          ? { $match: { "issues.issue_title": issue_title } }
-          : { $match: {} },
-        issue_text != undefined
-          ? { $match: { "issues.issue_text": issue_text } }
-          : { $match: {} },
-        created_by != undefined
-          ? { $match: { "issues.created_by": created_by } }
-          : { $match: {} },
-        assigned_to != undefined
-          ? { $match: { "issues.assigned_to": assigned_to } }
-          : { $match: {} },
-        status_text != undefined
-          ? { $match: { "issues.status_text": status_text } }
-          : { $match: {} },
-      ])
-      .exec((err, data) => {
-        if (!data) {
-          res.json([]);
-        } else {
-          let mappedData = data.map((item) => item.issues);
-          res.json(mappedData);
-        }
-      })
-    })
+        {$match : {name : project }} , 
+        {$unwind : "$issues"} , 
+        _id != undefined 
+          ? { $match : {"issues._id" : ObjectId(_id) }}
+          : { $match : {}} ,
+        open != undefined  
+          ? { $match : {"issues.open" : ObjectId(open)}} 
+          : { $match : {}} , 
+        issue_title  != undefined 
+          ? { $match : {"issues.issue_title" :  ObjectId(issue_title)}}
+          : { $match : {}} , 
+        issue_text != undefined  
+          ? { $match : {"issues.issue_text"  : ObjectId(issue_title )}}
+          : { $match : {}} , 
+        created_by != undefined 
+          ? { $match : {"issues.created_by" : ObjectId(created_by)}}
+          : { $match : {}} , 
+        assgined_to != undefined 
+          ? { $match : {"issues.assigned_to" : ObjectId(assgined_to)}}
+          : { $match : {}} , 
+        status_text != undefined 
+          ? { $match : {"issues.status_text " : ObjectId(status_text)}} 
+          : { $match : {}} , 
+        ]).exec((res , data) => {
+          if (!data) {
+            console.log ("no data has been set")
+          } else {
+            let mappedData = data.map((item) => item.Issues);
+            if (res.json(mappedData)) { 
+              console.log("respond recieved")
+            }else{ 
+              console.log("kill ur self")
+            }
+          }
+        });
+     })
     
 
     .post(async (req, res) => {
