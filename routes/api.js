@@ -1,4 +1,5 @@
 "use strict";
+
 const mongoose = require("mongoose");
 const IssueModel = require("../models").Issue;
 const ProjectModel = require("../models").Project;
@@ -10,7 +11,7 @@ module.exports = function (app) {
     .get(function (req, res) {
       let projectName = req.params.project;
       //?open=true&assigned_to=Joe
-      const {
+      const  {
         _id,
         open,
         issue_title,
@@ -20,38 +21,56 @@ module.exports = function (app) {
         status_text,
       } = req.query;
 
-      ProjectModel.aggregate([
-        { $match: { name: projectName } },
-        { $unwind: "$Issues" },
-        _id != undefined
-          ? { $match: { "Issues._id": _id } }
-          : { $match: {} },
-        open != undefined
-          ? { $match: { "Issues.open": open } }
-          : { $match: {} },
-        issue_title != undefined
-          ? { $match: { "Issues.issue_title": issue_title } }
-          : { $match: {} },
-        issue_text != undefined
-          ? { $match: { "Issues.issue_text": issue_text } }
-          : { $match: {} },
-        created_by != undefined
-          ? { $match: { "Issues.created_by": created_by } }
-          : { $match: {} },
-        assigned_to != undefined
-          ? { $match: { "issue.assigned_to": assigned_to } }
-          : { $match: {} },
-        status_text != undefined
-          ? { $match: { "Issues.status_text": status_text } }
-          : { $match: {} },
-      ]).exec((err, data) => {
-        if (!data) {
-          res.json([]);
-          console.log("data not found ")
-        } else {
-          let mappedData = data.map((item) => item.Issues);
-          res.json(mappedData);
+      // const projectt =  ProjectModel.aggregate([
+      //   { $match: { name: projectName } },
+      //   { $unwind: "$Issues" },
+      //   _id != undefined
+      //     ? { $match: { "Issues._id": ObjectId(_id) } }
+      //     : { $match: {} },
+      //   open != undefined
+      //     ? { $match: { "Issues.open": open } }
+      //     : { $match: {} },
+      //   issue_title != undefined
+      //     ? { $match: { "Issues.issue_title": issue_title } }
+      //     : { $match: {} },
+      //   issue_text != undefined
+      //     ? { $match: { "Issues.issue_text": issue_text } }
+      //     : { $match: {} },
+      //   created_by != undefined
+      //     ? { $match: { "Issues.created_by": created_by } }
+      //     : { $match: {} },
+      //   assigned_to != undefined
+      //     ? { $match: { "Issue.assigned_to": assigned_to } }
+      //     : { $match: {} },
+      //   status_text != undefined
+      //     ? { $match: { "Issues.status_text": status_text } }
+      //     : { $match: {} },    
+      // ])
+      const projectt =  ProjectModel.aggregate([
+        // existing pipeline
+      
+        {
+          $project: {
+            issueId: "$Issues._id",
+            issueTitle: "$Issues.issue_title", 
+            issueText: "$Issues.issue_text",
+            issueOpen: "$Issues.open",
+            issueCreatedBy: "$Issues.created_by",
+            issueAssignedTo: "$Issues.assigned_to",
+            issueStatusText: "$Issues.status_text" 
+          }
+        }
+      ])
+
+        projectt.then((data , err ) => {
+        if (data) {
+          console.log(data)
+          let mappedData = data.map((item) => item.Issues.assigned_to);
           console.log(mappedData)
+
+        }else { 
+          console.log (err)
+          res.json( {"err" : "no data to be found"})
         }
       });
     })
@@ -88,15 +107,17 @@ module.exports = function (app) {
               res.send("There was an error saving in post");
             } else {
               res.json(newIssue);
+              console.log("Data saved in DB")
             }
           });
         } else {
-          projectdata.issues.push(newIssue);
+          projectdata.Issues.push(newIssue);
           projectdata.save((err, data) => {
             if (err || !data) {
               res.send("There was an error saving in post");
             } else {
               res.json(newIssue);
+              console.log("Data saved in DB")
             }
           });
         }
