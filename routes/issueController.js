@@ -2,70 +2,55 @@ const Issue = require("./models").Issue;
 const Project = require("./models").Project;
 const Helper = require("../utils/helpers");
 const issueController = {
-  viewIssues: async (req, res) => {
+  viewIssues : ((req, res) => {
+    let projectName = req.params.project;
+    //?open=true&assigned_to=Joe
     const {
-      open,
       _id,
+      open,
       issue_title,
       issue_text,
       created_by,
       assigned_to,
-      status_text
+      status_text,
     } = req.query;
-    const projectName = req.params.project;
-    const params = {
-      open,
-      _id,
-      issue_title,
-      issue_text,
-      created_by,
-      assigned_to,
-      status_text
-    };
-    if (typeof params.open === "string") {
-      params.open = Helper.convertStringToBoolean(open);
-    }
-    const filteredParams = Helper.removeUndefinedAndEmptyStringValuesFromObj(
-      params
-    );
-    const filteredParamsLength = Object.keys(filteredParams).length;
-    await Project.findOne({ projectName }, (err, docs) => {
-      const issueDocs = docs.issues;
-      if (!filteredParamsLength) {
-        if (Array.isArray(issueDocs) && issueDocs.length) {
-          return res.send(issueDocs);
-        }
-        return res.send([]);
-      }
-      const filteredIssueList = docs.issues.filter(issue => {
-        let innerLoopCount = 0;
-        for (let key in filteredParams) {
-          if (key === "_id") {
-            if (
-              JSON.stringify(issue[key]) !== JSON.stringify(filteredParams[key])
-            ) {
-              innerLoopCount = 0;
-              return false;
-            }
-          } else {
-            if (issue[key] !== filteredParams[key]) {
-              innerLoopCount = 0;
-              return false;
-            }
-          }
-          if (innerLoopCount >= filteredParamsLength - 1) {
-            return true;
-          }
-          innerLoopCount += 1;
-        }
-      });
-      if (Array.isArray(filteredIssueList) && filteredIssueList.length) {
-        return res.send(filteredIssueList);
+
+    const projectt = Project.aggregate([
+      { $match: { name: projectName } },
+      { $unwind: "$issues" },
+      _id != undefined
+        ? { $match: { "issues._id": ObjectId(_id) } }
+        : { $match: {} },
+      open != undefined
+        ? { $match: { "issues.open": open } }
+        : { $match: {} },
+      issue_title != undefined
+        ? { $match: { "issues.issue_title": issue_title } }
+        : { $match: {} },
+      issue_text != undefined
+        ? { $match: { "issues.issue_text": issue_text } }
+        : { $match: {} },
+      created_by != undefined
+        ? { $match: { "issues.created_by": created_by } }
+        : { $match: {} },
+      assigned_to != undefined
+        ? { $match: { "issues.assigned_to": assigned_to } }
+        : { $match: {} },
+      status_text != undefined
+        ? { $match: { "issues.status_text": status_text } }
+        : { $match: {} },
+    ])
+    projectt.then(( data ,err   ) => {
+      if (data) {
+        let mappedData = data.map((item) => item.issues);
+        console.log(mappedData)
+        res.json(mappedData);
       } else {
-        return res.send([]);
+        res.json({ "Error" : "no data to be found"});
+        console.log("No data to be found ")
       }
     });
-  },
+  }),
   createIssue: (req, res) => {
     const {
       issue_title,

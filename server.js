@@ -18,14 +18,13 @@ mongoose.connect(process.env.DB, {
 
 const db = mongoose.connection;
 db.once("open", () => {
-  console.log("Cameron's app has connected to MongoDB.");
+  console.log("App has connected to MongoDB.");
 });
 
 db.on("error", err => {
   console.log(err);
 });
 
-mongoose.set("useFindAndModify", false);
 
 let app = express();
 
