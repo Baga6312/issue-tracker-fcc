@@ -7,7 +7,7 @@ const ObjectId = mongoose.Types.ObjectId;
 module.exports = function (app) {
   app
     .route("/api/issues/:project")
-    .get(async function (req, res) {
+    .get(async (req, res)=> {
       let projectName = req.params.project;
       //?open=true&assigned_to=Joe
       const {
@@ -19,9 +19,7 @@ module.exports = function (app) {
         assigned_to,
         status_text,
       } = req.query;
-
-      let searchQuery = req.query ; 
-
+      
       const projectt = ProjectModel.aggregate([
         { $match: { name: projectName } },
         { $unwind: "$Issues" },
@@ -47,10 +45,15 @@ module.exports = function (app) {
           ? { $match: { "Issues.status_text": status_text } }
           : { $match: {} },
       ])
-      const filter = await ProjectModel.find(req.query)
-      console.log(filter)
-      res.json(filter)
-    });
+      const query = req.query ; 
+      ProjectModel.find().then((data , err ) => { 
+        console.log(data[0])
+      })
+    
+      // const result = ProjectModel.find(query) 
+      // let str = JSON.stringify(result)
+      // console.log(str)
+      }); 
 
     app.post(function (req, res) {
       let project = req.params.project;
@@ -181,4 +184,4 @@ module.exports = function (app) {
         }
       });
     });
-};
+  }
