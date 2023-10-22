@@ -6,8 +6,8 @@
 	"scripts": {
 		"start": "node server.js",
 		"test": "mocha --timeout 5000 --recursive --exit --ui tdd tests/",
-		"dev": "nodemon server.js"
-	},
+		"dev": "clear ; nodemon server.js"
+	},	
 	"dependencies": {
 		"body-parser": "^1.19.0",
 		"chai": "^4.2.0",
@@ -31,5 +31,7 @@
 		"hyperdev",
 		"express"
 	],
+
 	"license": "MIT"
+	
 }
